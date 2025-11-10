@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>YouTube 검색 대시보드</title>
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#6272db",
+              primaryHover: "#7280dc",
+              surface: "#0b1020",
+              card: "#12172b",
+              border: "#1b2240",
+              textMain: "#e6e9f5",
+              textSub: "#aab1cf",
+              danger: "#f87171",
+            },
+            boxShadow: {
+              soft: "0 8px 20px rgb(0 0 0 / 0.2)",
+            },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="bg-surface text-textMain min-h-screen">
+    <div id="app" class="max-w-7xl mx-auto px-4 py-8">
+      <!-- 메인 콘텐츠는 JS에서 렌더링 -->
+    </div>
+
+    <script src="assets/js/main.js" defer></script>
+  </body>
+</html>
