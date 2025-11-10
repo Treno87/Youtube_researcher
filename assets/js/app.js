@@ -362,9 +362,15 @@ function applyFilters() {
   else if (dateMode === "12m") afterISO = monthsAgoISO(12);
 
   filtered = allResults.filter((v) => {
-    if (lenMode === "shorts" && !(v.durationSec != null && v.durationSec < 60))
+    if (
+      lenMode === "shorts" &&
+      !(v.durationSec != null && v.durationSec < 60)
+    )
       return false;
-    if (lenMode === "long" && !(v.durationSec != null && v.durationSec >= 60))
+    if (
+      lenMode === "long" &&
+      !(v.durationSec != null && v.durationSec >= 60)
+    )
       return false;
 
     if (afterISO) {
@@ -413,7 +419,11 @@ async function youtubeSearchAndEnrich(apiKey, q, order, publishedAfter) {
   searchUrl.search = new URLSearchParams(params).toString();
 
   const r1 = await fetch(searchUrl.toString());
-  if (!r1.ok) throw new Error(`search.list 실패 (${r1.status})`);
+  if (!r1.ok) {
+    const errorData = await r1.json().catch(() => ({}));
+    const errorMsg = errorData.error?.message || `HTTP ${r1.status}`;
+    throw new Error(`search.list 실패 (${r1.status}): ${errorMsg}`);
+  }
   const j1 = await r1.json();
 
   const items = j1.items || [];
@@ -432,7 +442,11 @@ async function youtubeSearchAndEnrich(apiKey, q, order, publishedAfter) {
   }).toString();
 
   const r2 = await fetch(videosUrl.toString());
-  if (!r2.ok) throw new Error(`videos.list 실패 (${r2.status})`);
+  if (!r2.ok) {
+    const errorData = await r2.json().catch(() => ({}));
+    const errorMsg = errorData.error?.message || `HTTP ${r2.status}`;
+    throw new Error(`videos.list 실패 (${r2.status}): ${errorMsg}`);
+  }
   const j2 = await r2.json();
   const vById = new Map();
   for (const v of j2.items || []) vById.set(v.id, v);
@@ -450,7 +464,11 @@ async function youtubeSearchAndEnrich(apiKey, q, order, publishedAfter) {
     }).toString();
 
     const r3 = await fetch(channelsUrl.toString());
-    if (!r3.ok) throw new Error(`channels.list 실패 (${r3.status})`);
+    if (!r3.ok) {
+      const errorData = await r3.json().catch(() => ({}));
+      const errorMsg = errorData.error?.message || `HTTP ${r3.status}`;
+      throw new Error(`channels.list 실패 (${r3.status}): ${errorMsg}`);
+    }
     const j3 = await r3.json();
     subsByChannel = new Map(
       (j3.items || []).map((c) => {
@@ -527,11 +545,7 @@ downloadCsvBtn.addEventListener("click", () => {
   }
   clearError();
   // 현재 정렬 반영해서 저장
-  const sorted = sortByField(
-    filtered,
-    currentSort.field,
-    currentSort.direction
-  );
+  const sorted = sortByField(filtered, currentSort.field, currentSort.direction);
   downloadCSV(sorted, "youtube_results.csv");
 });
 
