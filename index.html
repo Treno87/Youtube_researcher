@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>YouTube 검색 대시보드</title>
-    <link rel="stylesheet" href="assets/css/style.css" />
+    <title>YouTube 검색 대시보드 (정렬 · 필터 · CSV)</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -27,12 +27,256 @@
         },
       };
     </script>
+    <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body class="bg-surface text-textMain min-h-screen">
-    <div id="app" class="max-w-7xl mx-auto px-4 py-8">
-      <!-- 메인 콘텐츠는 JS에서 렌더링 -->
+    <div class="max-w-7xl mx-auto px-4 py-8">
+      <!-- Header -->
+      <header
+        class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8"
+      >
+        <div>
+          <h1 class="text-2xl font-bold">YouTube 검색 대시보드</h1>
+          <p class="text-textSub text-sm mt-1">
+            갤러리↔테이블, CSV 다운로드, 숏폼/롱폼 · 기간 · 성능(조회/구독) 멀티
+            필터, 헤더 정렬 ▲▼
+          </p>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <button
+            id="toggleViewBtn"
+            class="px-4 py-2 rounded-lg bg-primary hover:bg-primaryHover transition font-semibold"
+          >
+            테이블 보기로 전환
+          </button>
+          <button
+            id="downloadCsvBtn"
+            class="px-4 py-2 rounded-lg bg-card border border-border hover:border-textSub transition font-semibold"
+          >
+            CSV 다운로드
+          </button>
+          <button
+            id="openSettingsBtn"
+            class="px-4 py-2 rounded-lg bg-card border border-border hover:border-textSub transition font-semibold"
+          >
+            ⚙️ 설정
+          </button>
+        </div>
+      </header>
+
+      <!-- Search & Filters -->
+      <section
+        class="bg-card border border-border rounded-2xl p-4 md:p-6 shadow-soft mb-6"
+      >
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- 검색어 + 검색 -->
+          <div class="md:col-span-2">
+            <label class="block text-sm text-textSub mb-1">검색어</label>
+            <div class="flex gap-2">
+              <input
+                id="queryInput"
+                type="text"
+                placeholder="예: React tutorial, 헤드스파, 서울 맛집"
+                class="flex-1 rounded-lg bg-surface border border-border px-3 py-2 outline-none focus:ring-2 focus:ring-primary"
+              />
+              <button
+                id="searchBtn"
+                class="px-4 py-2 rounded-lg bg-primary hover:bg-primaryHover transition font-semibold"
+              >
+                검색
+              </button>
+            </div>
+          </div>
+          <!-- 정렬 기준 (API 레벨) -->
+          <div>
+            <label class="block text-sm text-textSub mb-1"
+              >정렬 기준 (API)</label
+            >
+            <select
+              id="orderSelect"
+              class="w-full rounded-lg bg-surface border border-border px-3 py-2 outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="relevance">관련도순 (기본)</option>
+              <option value="date">최신순</option>
+              <option value="viewCount">조회수순</option>
+              <option value="rating">평점순</option>
+              <option value="title">제목 A→Z</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          <!-- 길이 -->
+          <div>
+            <label class="block text-sm text-textSub mb-1">영상 길이</label>
+            <select
+              id="lengthFilter"
+              class="w-full rounded-lg bg-surface border border-border px-3 py-2 outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="all">전체</option>
+              <option value="shorts">&lt; 1분 (숏폼)</option>
+              <option value="long">&ge; 1분 (롱폼)</option>
+            </select>
+          </div>
+          <!-- 기간 -->
+          <div>
+            <label class="block text-sm text-textSub mb-1">업로드 기간</label>
+            <select
+              id="dateFilter"
+              class="w-full rounded-lg bg-surface border border-border px-3 py-2 outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="all">전체</option>
+              <option value="1m">최근 1개월</option>
+              <option value="2m">최근 2개월</option>
+              <option value="6m">최근 6개월</option>
+              <option value="12m">최근 1년</option>
+            </select>
+          </div>
+          <!-- 성능 멀티 셀렉트 -->
+          <div>
+            <label class="block text-sm text-textSub mb-1"
+              >성능 (조회수 ÷ 구독자수) — 복수 선택</label
+            >
+            <select
+              id="perfFilter"
+              multiple
+              size="5"
+              class="w-full rounded-lg bg-surface border border-border px-3 py-2 outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="1">1단계 · 낮음 (조회 ≪ 구독)</option>
+              <option value="2">2단계 · 보통 이하</option>
+              <option value="3">3단계 · 평균 (≈1:1)</option>
+              <option value="4">4단계 · 잘나옴 (2~5배)</option>
+              <option value="5">5단계 · 폭발적 (&ge;5배)</option>
+            </select>
+            <p class="text-xs text-textSub mt-1">
+              Windows: Ctrl, macOS: Cmd 키로 복수 선택
+            </p>
+          </div>
+        </div>
+
+        <p class="text-xs text-textSub mt-3">
+          ※ API 키는 설정(⚙️)에서 저장되며 이 브라우저의
+          <code>localStorage</code>에만 보관됩니다.
+        </p>
+      </section>
+
+      <!-- Status -->
+      <div id="statusBox" class="hidden mb-6">
+        <div class="animate-pulse text-textSub text-sm">검색 중… 잠시만요.</div>
+      </div>
+      <div id="errorBox" class="hidden mb-6">
+        <div class="text-danger text-sm"></div>
+      </div>
+
+      <!-- Gallery -->
+      <section
+        id="gallerySection"
+        class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+      ></section>
+
+      <!-- Table -->
+      <section
+        id="tableSection"
+        class="hidden overflow-x-auto border border-border rounded-2xl"
+      >
+        <table class="min-w-[1050px] w-full border-collapse">
+          <thead class="bg-card/70">
+            <tr class="text-left text-sm text-textSub">
+              <th class="px-4 py-3 border-b border-border">썸네일</th>
+              <th class="px-4 py-3 border-b border-border">제목</th>
+              <th class="px-4 py-3 border-b border-border">채널(구독)</th>
+              <th
+                id="th-publishedAt"
+                data-field="publishedAt"
+                class="px-4 py-3 border-b border-border sortable"
+              >
+                게시일 <span class="icon"></span>
+              </th>
+              <th
+                id="th-durationSec"
+                data-field="durationSec"
+                class="px-4 py-3 border-b border-border sortable"
+              >
+                길이 <span class="icon"></span>
+              </th>
+              <th
+                id="th-viewCount"
+                data-field="viewCount"
+                class="px-4 py-3 border-b border-border sortable"
+              >
+                조회수 <span class="icon"></span>
+              </th>
+              <th
+                id="th-likeCount"
+                data-field="likeCount"
+                class="px-4 py-3 border-b border-border sortable"
+              >
+                좋아요 <span class="icon"></span>
+              </th>
+              <th class="px-4 py-3 border-b border-border">태그</th>
+              <th
+                id="th-performanceRatio"
+                data-field="performanceRatio"
+                class="px-4 py-3 border-b border-border sortable"
+              >
+                성능(조회/구독) <span class="icon"></span>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="tableBody" class="text-sm"></tbody>
+        </table>
+      </section>
+
+      <footer class="mt-10 text-center text-xs text-textSub">
+        © 2025 – YouTube Data API v3 · 로컬 실행 전용 데모
+      </footer>
     </div>
 
-    <script src="assets/js/main.js" defer></script>
+    <!-- Settings Modal -->
+    <div
+      id="settingsModal"
+      class="hidden fixed inset-0 bg-black/60 z-50 items-center justify-center p-4"
+    >
+      <div class="bg-card border border-border rounded-2xl max-w-md w-full p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold">설정</h2>
+          <button
+            id="closeSettingsBtn"
+            class="text-textSub hover:text-textMain text-xl"
+            aria-label="닫기"
+          >
+            ×
+          </button>
+        </div>
+        <label class="block text-sm text-textSub mb-1">YouTube API Key</label>
+        <input
+          id="apiKeyInput"
+          type="password"
+          placeholder="AIza... (클라이언트에서 노출될 수 있음)"
+          class="w-full rounded-lg bg-surface border border-border px-3 py-2 outline-none focus:ring-2 focus:ring-primary"
+        />
+        <p class="text-xs text-textSub mt-2">
+          키는 이 브라우저의 localStorage에 저장됩니다.
+        </p>
+        <div class="flex gap-2 justify-end mt-5">
+          <button
+            id="saveSettingsBtn"
+            class="px-4 py-2 rounded-lg bg-primary hover:bg-primaryHover transition font-semibold"
+          >
+            저장
+          </button>
+          <button
+            id="clearSettingsBtn"
+            class="px-4 py-2 rounded-lg bg-card border border-border hover:border-textSub transition font-semibold"
+          >
+            삭제
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/app.js"></script>
   </body>
 </html>
